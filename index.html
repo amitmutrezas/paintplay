@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Paint PlayIN - Oil Paint Canvas</title>
+  <title>Paint PlayIN - Oil Paint Canvas | Fun Play With Paints</title>
   <!-- Import Roboto from Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -162,24 +162,42 @@
         gap: 12px;
         margin-bottom: 120px;
       }
-      
-      /* Position the hidden custom color picker just above the custom swatch */
+      .color-swatch {
+        width: 60px;
+        height: 60px;
+      }
+      .custom-swatch {
+        font-size: 16px;
+      }
+      /* Position the hidden custom color picker just above the color palette */
       #customColorPicker {
-        position: absolute;
+        position: fixed;
         left: 50%;
-        bottom: calc(100% + 10px); /* Position above the custom swatch */
+        bottom: calc(20px + 76px + 10px); /* 20px (palette bottom) + approx. 76px container height + 10px gap */
         transform: translateX(-50%);
         z-index: 100;
         display: none;
       }
-      
+      /* Adjust toolbar: move up to 25% from the top and increase size */
+      #toolbar {
+        top: 25%;
+        gap: 20px;
+      }
+      .toolbar-btn {
+        width: 80px;
+        height: 80px;
+      }
+      .toolbar-btn svg {
+        width: 55px;
+        height: 55px;
+      }
     }
   </style>
 </head>
 <body>
   <!-- Header with logo and text "Paint PlayIN" -->
   <header id="header">
-    <img src="https://via.placeholder.com/40" alt="Logo">
+    <img src="PaintPlayIN Logo.png" alt="Logo">
     <span>Paint PlayIN</span>
   </header>
 
