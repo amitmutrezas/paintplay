@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Oil Paint Canvas with Styled Instructions</title>
+  <!-- Import Roboto from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      background: #fff;
+    }
+    /* The painting canvas */
+    #paintCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      background-color: white;
+    }
+    /* The instruction canvas overlay */
+    #instructionCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 20;
+      pointer-events: none; /* Allow painting events to pass through */
+    }
+    /* Color Palette Container at Bottom */
+    #colorPalette {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      padding: 5px 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+    .color-swatch {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border 0.2s;
+    }
+    .color-swatch.selected {
+      border: 2px solid #000;
+    }
+    /* Toolbar on the right side */
+    #toolbar {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 10;
+    }
+    .toolbar-btn {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toolbar-btn:hover {
+      background: rgba(255,255,255,1);
+    }
+    .toolbar-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Painting Canvas -->
+  <canvas id="paintCanvas"></canvas>
+  <!-- Instruction Canvas (overlay) -->
+  <canvas id="instructionCanvas"></canvas>
+
+  <!-- Color Palette -->
+  <div id="colorPalette">
+    <div class="color-swatch selected" data-color="rgba(244,67,54,0.8)" style="background-color: rgba(244,67,54,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(233,30,99,0.8)" style="background-color: rgba(233,30,99,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(156,39,176,0.8)" style="background-color: rgba(156,39,176,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(63,81,181,0.8)" style="background-color: rgba(63,81,181,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(33,150,243,0.8)" style="background-color: rgba(33,150,243,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(0,188,212,0.8)" style="background-color: rgba(0,188,212,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(76,175,80,0.8)" style="background-color: rgba(76,175,80,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(255,235,59,0.8)" style="background-color: rgba(255,235,59,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(255,152,0,0.8)" style="background-color: rgba(255,152,0,0.8);"></div>
+  </div>
+
+  <!-- Toolbar with Save and Reset Buttons -->
+  <div id="toolbar">
+    <!-- Save Button: Floppy Disk Icon -->
+    <div id="saveBtn" class="toolbar-btn" title="Save">
+      <svg viewBox="0 0 24 24">
+        <path fill="#000" d="M17 3H5c-1.1 0-2 .9-2 2v14l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+      </svg>
+    </div>
+    <!-- Reset Button: Refresh Icon -->
+    <div id="resetBtn" class="toolbar-btn" title="Reset">
+      <svg viewBox="0 0 24 24">
+        <path fill="#000" d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+      </svg>
+    </div>
+  </div>
+
+  <script>
+    // Get both canvases and their contexts.
+    const paintCanvas = document.getElementById('paintCanvas');
+    const ctx = paintCanvas.getContext('2d');
+    const instrCanvas = document.getElementById('instructionCanvas');
+    const ictx = instrCanvas.getContext('2d');
+
+    // Function to resize both canvases to fill the window.
+    function resizeCanvases() {
+      paintCanvas.width = window.innerWidth;
+      paintCanvas.height = window.innerHeight;
+      // Fill the paint canvas with white (for saving/export)
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+
+      instrCanvas.width = window.innerWidth;
+      instrCanvas.height = window.innerHeight;
+      drawInstructions();
+    }
+    window.addEventListener('resize', resizeCanvases);
+    resizeCanvases();
+
+    // Draw the instruction message with an oil-painted effect.
+    function drawInstructions() {
+      // Clear the instruction canvas.
+      ictx.clearRect(0, 0, instrCanvas.width, instrCanvas.height);
+      // Set the font to Roboto (fallback to sans-serif).
+      ictx.font = "36px 'Roboto', sans-serif";
+      ictx.textAlign = "left"; // We'll handle centering manually
+      ictx.textBaseline = "top";
+      
+      // Define the instruction lines.
+      // For the first line, we want "Click and Drag" in dark blue and " to" in default.
+      const instructions = [
+        { parts: [ { text: "Click and Drag", color: "#00008B" }, { text: " to", color: "#222" } ] },
+        { text: "Paint with Oils", color: "#222" },
+        { text: "", color: "#222" },
+        { text: "Embrace your inner", color: "#222" },
+        { text: "Jackson Pollock,", color: "#222" },
+        { text: "don't think, just", color: "#222" },
+        { text: "paint!", color: "#222" }
+      ];
+      
+      const lineHeight = 42; // approximate line height
+      const totalHeight = lineHeight * instructions.length;
+      let currentY = (instrCanvas.height - totalHeight) / 2;
+      
+      // --- First, draw a few jittered copies for the oil-painted texture ---
+      ictx.shadowColor = "rgba(0, 0, 0, 0.2)";
+      ictx.shadowBlur = 2;
+      ictx.shadowOffsetX = 1;
+      ictx.shadowOffsetY = 1;
+      
+      // Draw each line with jitter
+      instructions.forEach((line, idx) => {
+        // Compute the full line width by drawing parts individually.
+        let lineWidth = 0;
+        if (line.parts) {
+          // Special case for first line with multiple parts.
+          line.parts.forEach(part => {
+            lineWidth += ictx.measureText(part.text).width;
+          });
+        } else {
+          lineWidth = ictx.measureText(line.text).width;
+        }
+        // Determine starting x coordinate so that the line is centered.
+        const startX = (instrCanvas.width - lineWidth) / 2;
+        let currentX = startX;
+        
+        // Draw jittered copies (three times)
+        for (let i = 0; i < 3; i++) {
+          const jitterX = (Math.random() - 0.5) * 2;
+          const jitterY = (Math.random() - 0.5) * 2;
+          currentX = startX;
+          if (line.parts) {
+            line.parts.forEach(part => {
+              ictx.fillStyle = part.color;
+              ictx.fillText(part.text, currentX + jitterX, currentY + jitterY);
+              currentX += ictx.measureText(part.text).width;
+            });
+          } else {
+            ictx.fillStyle = line.color;
+            ictx.fillText(line.text, currentX + jitterX, currentY + jitterY);
+          }
+        }
+        currentY += lineHeight;
+      });
+      
+      // --- Now draw crisp, clear text on top for readability ---
+      ictx.shadowColor = "transparent";
+      currentY = (instrCanvas.height - totalHeight) / 2;
+      instructions.forEach(line => {
+        let lineWidth = 0;
+        if (line.parts) {
+          line.parts.forEach(part => {
+            lineWidth += ictx.measureText(part.text).width;
+          });
+        } else {
+          lineWidth = ictx.measureText(line.text).width;
+        }
+        const startX = (instrCanvas.width - lineWidth) / 2;
+        let currentX = startX;
+        if (line.parts) {
+          line.parts.forEach(part => {
+            ictx.fillStyle = part.color;
+            ictx.fillText(part.text, currentX, currentY);
+            currentX += ictx.measureText(part.text).width;
+          });
+        } else {
+          ictx.fillStyle = line.color;
+          ictx.fillText(line.text, currentX, currentY);
+        }
+        currentY += lineHeight;
+      });
+    }
+
+    // Painting variables.
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let lastTime = 0;
+    let currentColor = document.querySelector('.color-swatch.selected').getAttribute('data-color');
+    const minThickness = 5;
+    const maxThickness = 30;
+    let instructionsRemoved = false; // To track if instructions have been removed.
+
+    // Draw a textured main stroke using overlapping circles.
+    function drawMainStroke(x, y, thickness) {
+      const count = 4 + Math.floor(Math.random() * 3); // 4-6 mini-strokes.
+      for (let i = 0; i < count; i++) {
+        const offsetX = (Math.random() - 0.5) * thickness * 0.4;
+        const offsetY = (Math.random() - 0.5) * thickness * 0.4;
+        const radius = thickness * (0.8 + Math.random() * 0.2);
+        ctx.fillStyle = currentColor;
+        ctx.globalAlpha = 0.8 * (0.9 + Math.random() * 0.2);
+        ctx.beginPath();
+        ctx.arc(x + offsetX, y + offsetY, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Draw a small droplet with variation in size and opacity.
+    function drawDroplet(x, y, thickness) {
+      const radius = thickness * (0.15 + Math.random() * 0.2);
+      ctx.fillStyle = currentColor;
+      ctx.globalAlpha = 0.8 * (0.9 + Math.random() * 0.2);
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // Spray droplets around a point.
+    function sprayPaint(x, y, thickness) {
+      const dropletCount = Math.floor(10 + ((thickness - minThickness) / (maxThickness - minThickness)) * 10);
+      for (let i = 0; i < dropletCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 30;
+        const dropletX = x + Math.cos(angle) * distance;
+        const dropletY = y + Math.sin(angle) * distance;
+        drawDroplet(dropletX, dropletY, thickness);
+      }
+    }
+
+    // Handle mouse movement; stroke thickness depends on drag speed.
+    function handleMouseMove(e) {
+      if (!isDrawing) return;
+      // Remove the instructions overlay on first interaction.
+      if (!instructionsRemoved) {
+        instrCanvas.style.display = "none";
+        instructionsRemoved = true;
+      }
+      const x = e.clientX;
+      const y = e.clientY;
+      const now = Date.now();
+      const timeDelta = now - lastTime;
+      const dx = x - lastX;
+      const dy = y - lastY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const speed = timeDelta ? (distance * 1000) / timeDelta : 0;
+      let thickness = Math.max(minThickness, maxThickness - speed / 50);
+      const steps = Math.ceil(distance / 5);
+      for (let i = 0; i < steps; i++) {
+        const t = i / steps;
+        const xPos = lastX + dx * t;
+        const yPos = lastY + dy * t;
+        drawMainStroke(xPos, yPos, thickness);
+        sprayPaint(xPos, yPos, thickness);
+      }
+      lastX = x;
+      lastY = y;
+      lastTime = now;
+    }
+
+    // Mouse event listeners on the painting canvas.
+    paintCanvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      lastTime = Date.now();
+      // Remove instructions on first mousedown if not already removed.
+      if (!instructionsRemoved) {
+        instrCanvas.style.display = "none";
+        instructionsRemoved = true;
+      }
+    });
+    paintCanvas.addEventListener('mousemove', handleMouseMove);
+    paintCanvas.addEventListener('mouseup', () => isDrawing = false);
+    paintCanvas.addEventListener('mouseout', () => isDrawing = false);
+
+    // Set up the color palette.
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        currentColor = swatch.getAttribute('data-color');
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        swatch.classList.add('selected');
+      });
+    });
+
+    // Toolbar button actions.
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const dataURL = paintCanvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'myOilPainting.png';
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      ctx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      // Reset the instructions overlay.
+      instrCanvas.style.display = "block";
+      drawInstructions();
+      instructionsRemoved = false;
+    });
+  </script>
+</body>
+</html>
