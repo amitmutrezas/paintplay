@@ -21,7 +21,7 @@
       right: 0;
       height: 60px;
       background: #ADD8E6;  /* light blue */
-      color: #fff;
+      color: #382929;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -71,6 +71,7 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
       z-index: 10;
       margin-bottom: 20px;
+      
     }
     .color-swatch {
       width: 50px;
@@ -92,11 +93,20 @@
       font-size: 12px;
       color: #444;
     }
+    /* Custom Color Picker positioned above the palette */
+    #customColorPicker {
+      position: fixed;
+      left: 50%;
+      bottom: 106px; /* fixed value: 20px (palette bottom) + 76px (approx. palette height) + 10px gap */
+      transform: translateX(-50%);
+      z-index: 100;
+      display: none;
+    }
     /* Toolbar on the right side */
     #toolbar {
       position: fixed;
       right: 10px;
-      top: 75%;
+      top: 65%;
       transform: translateY(-50%);
       display: flex;
       flex-direction: column;
@@ -130,7 +140,7 @@
       background-color: #2f7b33;
     }
     .save-btn svg path {
-      fill: #fff;
+      fill: #ffffff;
     }
     .reset-btn {
       background-color: #F44336; /* Red */
@@ -139,6 +149,16 @@
       background-color: #8c2321;
     }
     .reset-btn svg path {
+      fill: #fff;
+    }
+    /* Rename extra action to undo button */
+    .undo-btn {
+      background-color: #d7c141; /* Gold as placeholder */
+    }
+    .undo-btn:hover {
+      background-color: #61480b;
+    }
+    .undo-btn svg path {
       fill: #fff;
     }
     /* Mobile Optimization */
@@ -169,11 +189,11 @@
       .custom-swatch {
         font-size: 16px;
       }
-      /* Position the hidden custom color picker just above the color palette */
+      /* Custom color picker remains fixed above the palette */
       #customColorPicker {
         position: fixed;
         left: 50%;
-        bottom: calc(20px + 76px + 10px); /* 20px (palette bottom) + approx. 76px container height + 10px gap */
+        bottom: 106px;
         transform: translateX(-50%);
         z-index: 100;
         display: none;
@@ -226,13 +246,19 @@
   <!-- Hidden Color Input for Custom Color -->
   <input type="color" id="customColorPicker">
   
-  <!-- Toolbar with Save and Reset Buttons -->
+  <!-- Toolbar with Save, Reset, and Undo Buttons -->
   <div id="toolbar">
     <!-- Save Button -->
     <div id="saveBtn" class="toolbar-btn save-btn" title="Save">
       <svg viewBox="0 0 24 24">
         <path d="M17 3H5c-1.1 0-2 .9-2 2v14l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
       </svg>
+    </div>
+    <!-- Undo Button -->
+    <div id="undoBtn" class="toolbar-btn undo-btn" title="Undo">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 1.86-.73 3.55-1.91 4.87l1.43 1.43C20.02 18.03 21 15.64 21 13c0-4.97-4.03-9-9-9z"/>
+        </svg>
     </div>
     <!-- Reset Button -->
     <div id="resetBtn" class="toolbar-btn reset-btn" title="Reset">
@@ -243,6 +269,9 @@
   </div>
 
   <script>
+    // Global undo stack to store canvas states.
+    let undoStack = [];
+    
     // Get DOM elements.
     const header = document.getElementById('header');
     const mobileDiv = document.getElementById('mobileDiv');
@@ -252,6 +281,20 @@
     const ictx = instrCanvas.getContext('2d');
     const customSwatch = document.getElementById('customSwatch');
     const customColorPicker = document.getElementById('customColorPicker');
+    const undoBtn = document.getElementById('undoBtn');
+    
+    // Function to save the current state of the canvas.
+    function saveState() {
+      // Limit the undo stack size if necessary.
+      undoStack.push(ctx.getImageData(0, 0, paintCanvas.width, paintCanvas.height));
+    }
+    
+    // Initialize the canvas state.
+    function initCanvas() {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      saveState(); // Save the initial white state.
+    }
     
     // Resize canvases and mobile div based on window size.
     function resizeCanvases() {
@@ -278,6 +321,7 @@
       instrCanvas.width = window.innerWidth;
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      initCanvas();
       drawInstructions();
     }
     window.addEventListener('resize', resizeCanvases);
@@ -449,7 +493,10 @@
       }
     });
     paintCanvas.addEventListener('mousemove', handleMouseMove);
-    paintCanvas.addEventListener('mouseup', () => isDrawing = false);
+    paintCanvas.addEventListener('mouseup', () => {
+      isDrawing = false;
+      saveState();
+    });
     paintCanvas.addEventListener('mouseout', () => isDrawing = false);
 
     paintCanvas.addEventListener('touchstart', (e) => {
@@ -489,7 +536,10 @@
       lastY = y;
       lastTime = now;
     }, { passive: false });
-    paintCanvas.addEventListener('touchend', () => isDrawing = false, { passive: false });
+    paintCanvas.addEventListener('touchend', () => {
+      isDrawing = false;
+      saveState();
+    }, { passive: false });
     paintCanvas.addEventListener('touchcancel', () => isDrawing = false, { passive: false });
     
     document.querySelectorAll('.color-swatch').forEach(swatch => {
@@ -532,7 +582,28 @@
       instrCanvas.style.display = "block";
       drawInstructions();
       instructionsRemoved = false;
+      // Reset undo stack to the cleared state.
+      undoStack = [];
+      saveState();
     });
+    
+    // Undo functionality: remove the last stroke.
+    function undoStroke() {
+      if (undoStack.length > 1) {
+        // Remove current state.
+        undoStack.pop();
+        // Restore previous state.
+        const previousState = undoStack[undoStack.length - 1];
+        ctx.putImageData(previousState, 0, 0);
+      } else {
+        // If no previous state, clear canvas.
+        ctx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      }
+    }
+    
+    document.getElementById('undoBtn').addEventListener('click', undoStroke);
   </script>
 </body>
 </html>
