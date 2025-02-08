@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Oil Paint Canvas with Mobile Touch Support</title>
+  <title>Paint PlayIN - Oil Paint Canvas</title>
   <!-- Import Roboto from Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -10,42 +10,71 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      height: 100%;
       background: #fff;
+      font-family: 'Roboto', sans-serif;
     }
-    /* The painting canvas */
+    /* Header styling with light blue background and logo */
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #ADD8E6;  /* light blue */
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      font-size: 24px;
+      font-weight: bold;
+      padding: 0 20px;
+    }
+    /* Logo styling */
+    #header img {
+      height: 40px;
+      width: 40px;
+      margin-right: 10px;
+    }
+    /* Mobile div above canvas (only visible on mobile) */
+    #mobileDiv {
+      display: none;
+      width: 100%;
+      background: #92b8d1;  /* light blue-gray */
+    }
+    /* The painting canvas with elevation */
     #paintCanvas {
       position: absolute;
-      top: 0;
       left: 0;
       z-index: 1;
       background-color: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
     /* The instruction canvas overlay */
     #instructionCanvas {
       position: absolute;
-      top: 0;
       left: 0;
       z-index: 20;
-      pointer-events: none; /* Allow painting events to pass through */
+      pointer-events: none;
     }
     /* Color Palette Container at Bottom */
     #colorPalette {
       position: fixed;
-      bottom: 10px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
       gap: 10px;
       padding: 5px 10px;
       background: rgba(255, 255, 255, 0.8);
-      border-radius: 10px;
+      border-radius: 15px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
       z-index: 10;
+      margin-bottom: 20px;
     }
     .color-swatch {
-      width: 30px;
-      height: 30px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       cursor: pointer;
       border: 2px solid transparent;
@@ -54,11 +83,20 @@
     .color-swatch.selected {
       border: 2px solid #000;
     }
+    /* Custom swatch styling */
+    .custom-swatch {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(45deg, #ccc, #eee);
+      font-size: 12px;
+      color: #444;
+    }
     /* Toolbar on the right side */
     #toolbar {
       position: fixed;
       right: 10px;
-      top: 50%;
+      top: 75%;
       transform: translateY(-50%);
       display: flex;
       flex-direction: column;
@@ -66,8 +104,8 @@
       z-index: 10;
     }
     .toolbar-btn {
-      width: 40px;
-      height: 40px;
+      width: 80px;
+      height: 80px;
       background: rgba(255,255,255,0.8);
       border-radius: 50%;
       display: flex;
@@ -81,12 +119,73 @@
       background: rgba(255,255,255,1);
     }
     .toolbar-btn svg {
-      width: 24px;
-      height: 24px;
+      width: 45px;
+      height: 45px;
+    }
+    /* Universal styles for Save and Reset buttons */
+    .save-btn {
+      background-color: #4CAF50; /* Green */
+    }
+    .save-btn:hover {
+      background-color: #2f7b33;
+    }
+    .save-btn svg path {
+      fill: #fff;
+    }
+    .reset-btn {
+      background-color: #F44336; /* Red */
+    }
+    .reset-btn:hover {
+      background-color: #8c2321;
+    }
+    .reset-btn svg path {
+      fill: #fff;
+    }
+    /* Mobile Optimization */
+    @media (max-width: 600px) {
+      /* Left align header content on mobile */
+      #header {
+        justify-content: flex-start;
+        padding-left: 10px;
+      }
+      /* Display mobile div and set its height to 10% of available area */
+      #mobileDiv {
+        display: block;
+      }
+      /* Adjust canvas and instruction canvas positions based on header + mobileDiv */
+      #paintCanvas, #instructionCanvas {
+        top: calc(60px + var(--mobileDivHeight));
+      }
+      /* Increase color palette bottom margin and enlarge swatch sizes to 60x60px */
+      #colorPalette {
+        padding: 8px 16px;
+        gap: 12px;
+        margin-bottom: 120px;
+      }
+      
+      /* Position the hidden custom color picker just above the custom swatch */
+      #customColorPicker {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 10px); /* Position above the custom swatch */
+        transform: translateX(-50%);
+        z-index: 100;
+        display: none;
+      }
+      
     }
   </style>
 </head>
 <body>
+  <!-- Header with logo and text "Paint PlayIN" -->
+  <header id="header">
+    <img src="https://via.placeholder.com/40" alt="Logo">
+    <span>Paint PlayIN</span>
+  </header>
+
+  <!-- Mobile-only div covering 10% of the available canvas area -->
+  <div id="mobileDiv"></div>
+  
   <!-- Painting Canvas -->
   <canvas id="paintCanvas"></canvas>
   <!-- Instruction Canvas (overlay) -->
@@ -103,41 +202,64 @@
     <div class="color-swatch" data-color="rgba(76,175,80,0.8)" style="background-color: rgba(76,175,80,0.8);"></div>
     <div class="color-swatch" data-color="rgba(255,235,59,0.8)" style="background-color: rgba(255,235,59,0.8);"></div>
     <div class="color-swatch" data-color="rgba(255,152,0,0.8)" style="background-color: rgba(255,152,0,0.8);"></div>
+    <!-- Custom Color Swatch -->
+    <div class="color-swatch custom-swatch" id="customSwatch" title="Choose Custom Color">C</div>
   </div>
-
+  <!-- Hidden Color Input for Custom Color -->
+  <input type="color" id="customColorPicker">
+  
   <!-- Toolbar with Save and Reset Buttons -->
   <div id="toolbar">
-    <!-- Save Button: Floppy Disk Icon -->
-    <div id="saveBtn" class="toolbar-btn" title="Save">
+    <!-- Save Button -->
+    <div id="saveBtn" class="toolbar-btn save-btn" title="Save">
       <svg viewBox="0 0 24 24">
-        <path fill="#000" d="M17 3H5c-1.1 0-2 .9-2 2v14l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+        <path d="M17 3H5c-1.1 0-2 .9-2 2v14l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
       </svg>
     </div>
-    <!-- Reset Button: Refresh Icon -->
-    <div id="resetBtn" class="toolbar-btn" title="Reset">
+    <!-- Reset Button -->
+    <div id="resetBtn" class="toolbar-btn reset-btn" title="Reset">
       <svg viewBox="0 0 24 24">
-        <path fill="#000" d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
       </svg>
     </div>
   </div>
 
   <script>
-    // Get both canvases and their contexts.
+    // Get DOM elements.
+    const header = document.getElementById('header');
+    const mobileDiv = document.getElementById('mobileDiv');
     const paintCanvas = document.getElementById('paintCanvas');
     const ctx = paintCanvas.getContext('2d');
     const instrCanvas = document.getElementById('instructionCanvas');
     const ictx = instrCanvas.getContext('2d');
-
-    // Function to resize both canvases to fill the window.
+    const customSwatch = document.getElementById('customSwatch');
+    const customColorPicker = document.getElementById('customColorPicker');
+    
+    // Resize canvases and mobile div based on window size.
     function resizeCanvases() {
+      const headerHeight = header.offsetHeight;
+      const availableHeight = window.innerHeight - headerHeight;
+      
+      if (window.innerWidth <= 600) {
+        const mobileDivHeight = availableHeight * 0.1; // 10% of available area
+        mobileDiv.style.display = "block";
+        mobileDiv.style.height = mobileDivHeight + "px";
+        paintCanvas.style.top = (headerHeight + mobileDivHeight) + "px";
+        instrCanvas.style.top = (headerHeight + mobileDivHeight) + "px";
+        paintCanvas.height = availableHeight - mobileDivHeight;
+        instrCanvas.height = availableHeight - mobileDivHeight;
+        document.documentElement.style.setProperty('--mobileDivHeight', mobileDivHeight + "px");
+      } else {
+        mobileDiv.style.display = "none";
+        paintCanvas.style.top = headerHeight + "px";
+        instrCanvas.style.top = headerHeight + "px";
+        paintCanvas.height = availableHeight;
+        instrCanvas.height = availableHeight;
+      }
       paintCanvas.width = window.innerWidth;
-      paintCanvas.height = window.innerHeight;
-      // Fill the paint canvas with white (for saving/export)
+      instrCanvas.width = window.innerWidth;
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
-
-      instrCanvas.width = window.innerWidth;
-      instrCanvas.height = window.innerHeight;
       drawInstructions();
     }
     window.addEventListener('resize', resizeCanvases);
@@ -145,15 +267,11 @@
 
     // Draw the instruction message with an oil-painted effect.
     function drawInstructions() {
-      // Clear the instruction canvas.
       ictx.clearRect(0, 0, instrCanvas.width, instrCanvas.height);
-      // Set the font to Roboto (fallback to sans-serif).
       ictx.font = "36px 'Roboto', sans-serif";
-      ictx.textAlign = "left"; // We'll calculate centering manually.
+      ictx.textAlign = "left";
       ictx.textBaseline = "top";
       
-      // Define the instruction lines.
-      // For the first line, we want "Click and Drag" in dark blue (#00008B) and " to" in dark gray (#222).
       const instructions = [
         { parts: [ { text: "Click and Drag", color: "#00008B" }, { text: " to", color: "#222" } ] },
         { text: "Paint with Oils", color: "#222" },
@@ -164,18 +282,15 @@
         { text: "paint!", color: "#222" }
       ];
       
-      const lineHeight = 42; // approximate line height
+      const lineHeight = 42;
       const totalHeight = lineHeight * instructions.length;
       let currentY = (instrCanvas.height - totalHeight) / 2;
       
-      // --- Draw jittered copies for the oil-painted texture ---
       ictx.shadowColor = "rgba(0, 0, 0, 0.2)";
       ictx.shadowBlur = 2;
       ictx.shadowOffsetX = 1;
       ictx.shadowOffsetY = 1;
-      
-      // Draw each line with jitter (three copies per line)
-      instructions.forEach((line) => {
+      instructions.forEach(line => {
         let lineWidth = 0;
         if (line.parts) {
           line.parts.forEach(part => {
@@ -205,7 +320,6 @@
         currentY += lineHeight;
       });
       
-      // --- Draw crisp, clear text on top for readability ---
       ictx.shadowColor = "transparent";
       currentY = (instrCanvas.height - totalHeight) / 2;
       instructions.forEach(line => {
@@ -233,7 +347,6 @@
       });
     }
 
-    // Painting variables.
     let isDrawing = false;
     let lastX = 0;
     let lastY = 0;
@@ -241,11 +354,10 @@
     let currentColor = document.querySelector('.color-swatch.selected').getAttribute('data-color');
     const minThickness = 5;
     const maxThickness = 30;
-    let instructionsRemoved = false; // Tracks if instructions have been hidden.
+    let instructionsRemoved = false;
 
-    // Draw a textured main stroke using overlapping circles.
     function drawMainStroke(x, y, thickness) {
-      const count = 4 + Math.floor(Math.random() * 3); // 4-6 mini-strokes.
+      const count = 4 + Math.floor(Math.random() * 3);
       for (let i = 0; i < count; i++) {
         const offsetX = (Math.random() - 0.5) * thickness * 0.4;
         const offsetY = (Math.random() - 0.5) * thickness * 0.4;
@@ -259,7 +371,6 @@
       ctx.globalAlpha = 1;
     }
 
-    // Draw a small droplet with variation in size and opacity.
     function drawDroplet(x, y, thickness) {
       const radius = thickness * (0.15 + Math.random() * 0.2);
       ctx.fillStyle = currentColor;
@@ -270,7 +381,6 @@
       ctx.globalAlpha = 1;
     }
 
-    // Spray droplets around a point.
     function sprayPaint(x, y, thickness) {
       const dropletCount = Math.floor(10 + ((thickness - minThickness) / (maxThickness - minThickness)) * 10);
       for (let i = 0; i < dropletCount; i++) {
@@ -282,7 +392,6 @@
       }
     }
 
-    // Handle mouse movement; stroke thickness depends on drag speed.
     function handleMouseMove(e) {
       if (!isDrawing) return;
       if (!instructionsRemoved) {
@@ -311,7 +420,6 @@
       lastTime = now;
     }
 
-    // Mouse event listeners.
     paintCanvas.addEventListener('mousedown', (e) => {
       isDrawing = true;
       lastX = e.clientX;
@@ -326,7 +434,6 @@
     paintCanvas.addEventListener('mouseup', () => isDrawing = false);
     paintCanvas.addEventListener('mouseout', () => isDrawing = false);
 
-    // --- Touch Event Listeners for Mobile Devices ---
     paintCanvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       isDrawing = true;
@@ -339,7 +446,6 @@
         instructionsRemoved = true;
       }
     }, { passive: false });
-    
     paintCanvas.addEventListener('touchmove', (e) => {
       e.preventDefault();
       if (!isDrawing) return;
@@ -365,25 +471,33 @@
       lastY = y;
       lastTime = now;
     }, { passive: false });
+    paintCanvas.addEventListener('touchend', () => isDrawing = false, { passive: false });
+    paintCanvas.addEventListener('touchcancel', () => isDrawing = false, { passive: false });
     
-    paintCanvas.addEventListener('touchend', (e) => {
-      isDrawing = false;
-    }, { passive: false });
-    
-    paintCanvas.addEventListener('touchcancel', (e) => {
-      isDrawing = false;
-    }, { passive: false });
-    
-    // Color palette setup.
     document.querySelectorAll('.color-swatch').forEach(swatch => {
       swatch.addEventListener('click', () => {
+        if (swatch.classList.contains('custom-swatch')) return;
         currentColor = swatch.getAttribute('data-color');
         document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
         swatch.classList.add('selected');
       });
     });
     
-    // Toolbar actions.
+    customSwatch.addEventListener('click', () => {
+      customColorPicker.style.display = "block";
+      customColorPicker.click();
+    });
+    customColorPicker.addEventListener('input', () => {
+      currentColor = customColorPicker.value;
+      customSwatch.style.backgroundColor = currentColor;
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      customSwatch.classList.add('selected');
+      customColorPicker.style.display = "none";
+    });
+    customColorPicker.addEventListener('blur', () => {
+      customColorPicker.style.display = "none";
+    });
+    
     document.getElementById('saveBtn').addEventListener('click', () => {
       const dataURL = paintCanvas.toDataURL('image/png');
       const link = document.createElement('a');
