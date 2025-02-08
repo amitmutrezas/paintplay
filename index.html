@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Oil Paint Canvas with Styled Instructions</title>
+  <title>Oil Paint Canvas with Mobile Touch Support</title>
   <!-- Import Roboto from Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -149,11 +149,11 @@
       ictx.clearRect(0, 0, instrCanvas.width, instrCanvas.height);
       // Set the font to Roboto (fallback to sans-serif).
       ictx.font = "36px 'Roboto', sans-serif";
-      ictx.textAlign = "left"; // We'll handle centering manually
+      ictx.textAlign = "left"; // We'll calculate centering manually.
       ictx.textBaseline = "top";
       
       // Define the instruction lines.
-      // For the first line, we want "Click and Drag" in dark blue and " to" in default.
+      // For the first line, we want "Click and Drag" in dark blue (#00008B) and " to" in dark gray (#222).
       const instructions = [
         { parts: [ { text: "Click and Drag", color: "#00008B" }, { text: " to", color: "#222" } ] },
         { text: "Paint with Oils", color: "#222" },
@@ -168,48 +168,44 @@
       const totalHeight = lineHeight * instructions.length;
       let currentY = (instrCanvas.height - totalHeight) / 2;
       
-      // --- First, draw a few jittered copies for the oil-painted texture ---
+      // --- Draw jittered copies for the oil-painted texture ---
       ictx.shadowColor = "rgba(0, 0, 0, 0.2)";
       ictx.shadowBlur = 2;
       ictx.shadowOffsetX = 1;
       ictx.shadowOffsetY = 1;
       
-      // Draw each line with jitter
-      instructions.forEach((line, idx) => {
-        // Compute the full line width by drawing parts individually.
+      // Draw each line with jitter (three copies per line)
+      instructions.forEach((line) => {
         let lineWidth = 0;
         if (line.parts) {
-          // Special case for first line with multiple parts.
           line.parts.forEach(part => {
             lineWidth += ictx.measureText(part.text).width;
           });
         } else {
           lineWidth = ictx.measureText(line.text).width;
         }
-        // Determine starting x coordinate so that the line is centered.
         const startX = (instrCanvas.width - lineWidth) / 2;
-        let currentX = startX;
-        
-        // Draw jittered copies (three times)
         for (let i = 0; i < 3; i++) {
-          const jitterX = (Math.random() - 0.5) * 2;
-          const jitterY = (Math.random() - 0.5) * 2;
-          currentX = startX;
+          let currentX = startX;
           if (line.parts) {
             line.parts.forEach(part => {
+              const jitterX = (Math.random() - 0.5) * 2;
+              const jitterY = (Math.random() - 0.5) * 2;
               ictx.fillStyle = part.color;
               ictx.fillText(part.text, currentX + jitterX, currentY + jitterY);
               currentX += ictx.measureText(part.text).width;
             });
           } else {
+            const jitterX = (Math.random() - 0.5) * 2;
+            const jitterY = (Math.random() - 0.5) * 2;
             ictx.fillStyle = line.color;
-            ictx.fillText(line.text, currentX + jitterX, currentY + jitterY);
+            ictx.fillText(line.text, startX + jitterX, currentY + jitterY);
           }
         }
         currentY += lineHeight;
       });
       
-      // --- Now draw crisp, clear text on top for readability ---
+      // --- Draw crisp, clear text on top for readability ---
       ictx.shadowColor = "transparent";
       currentY = (instrCanvas.height - totalHeight) / 2;
       instructions.forEach(line => {
@@ -231,7 +227,7 @@
           });
         } else {
           ictx.fillStyle = line.color;
-          ictx.fillText(line.text, currentX, currentY);
+          ictx.fillText(line.text, startX, currentY);
         }
         currentY += lineHeight;
       });
@@ -245,7 +241,7 @@
     let currentColor = document.querySelector('.color-swatch.selected').getAttribute('data-color');
     const minThickness = 5;
     const maxThickness = 30;
-    let instructionsRemoved = false; // To track if instructions have been removed.
+    let instructionsRemoved = false; // Tracks if instructions have been hidden.
 
     // Draw a textured main stroke using overlapping circles.
     function drawMainStroke(x, y, thickness) {
@@ -289,7 +285,6 @@
     // Handle mouse movement; stroke thickness depends on drag speed.
     function handleMouseMove(e) {
       if (!isDrawing) return;
-      // Remove the instructions overlay on first interaction.
       if (!instructionsRemoved) {
         instrCanvas.style.display = "none";
         instructionsRemoved = true;
@@ -316,13 +311,12 @@
       lastTime = now;
     }
 
-    // Mouse event listeners on the painting canvas.
+    // Mouse event listeners.
     paintCanvas.addEventListener('mousedown', (e) => {
       isDrawing = true;
       lastX = e.clientX;
       lastY = e.clientY;
       lastTime = Date.now();
-      // Remove instructions on first mousedown if not already removed.
       if (!instructionsRemoved) {
         instrCanvas.style.display = "none";
         instructionsRemoved = true;
@@ -332,7 +326,55 @@
     paintCanvas.addEventListener('mouseup', () => isDrawing = false);
     paintCanvas.addEventListener('mouseout', () => isDrawing = false);
 
-    // Set up the color palette.
+    // --- Touch Event Listeners for Mobile Devices ---
+    paintCanvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      isDrawing = true;
+      const touch = e.touches[0];
+      lastX = touch.clientX;
+      lastY = touch.clientY;
+      lastTime = Date.now();
+      if (!instructionsRemoved) {
+        instrCanvas.style.display = "none";
+        instructionsRemoved = true;
+      }
+    }, { passive: false });
+    
+    paintCanvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDrawing) return;
+      const touch = e.touches[0];
+      const x = touch.clientX;
+      const y = touch.clientY;
+      const now = Date.now();
+      const timeDelta = now - lastTime;
+      const dx = x - lastX;
+      const dy = y - lastY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const speed = timeDelta ? (distance * 1000) / timeDelta : 0;
+      let thickness = Math.max(minThickness, maxThickness - speed / 50);
+      const steps = Math.ceil(distance / 5);
+      for (let i = 0; i < steps; i++) {
+        const t = i / steps;
+        const xPos = lastX + dx * t;
+        const yPos = lastY + dy * t;
+        drawMainStroke(xPos, yPos, thickness);
+        sprayPaint(xPos, yPos, thickness);
+      }
+      lastX = x;
+      lastY = y;
+      lastTime = now;
+    }, { passive: false });
+    
+    paintCanvas.addEventListener('touchend', (e) => {
+      isDrawing = false;
+    }, { passive: false });
+    
+    paintCanvas.addEventListener('touchcancel', (e) => {
+      isDrawing = false;
+    }, { passive: false });
+    
+    // Color palette setup.
     document.querySelectorAll('.color-swatch').forEach(swatch => {
       swatch.addEventListener('click', () => {
         currentColor = swatch.getAttribute('data-color');
@@ -340,8 +382,8 @@
         swatch.classList.add('selected');
       });
     });
-
-    // Toolbar button actions.
+    
+    // Toolbar actions.
     document.getElementById('saveBtn').addEventListener('click', () => {
       const dataURL = paintCanvas.toDataURL('image/png');
       const link = document.createElement('a');
@@ -355,7 +397,6 @@
       ctx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
-      // Reset the instructions overlay.
       instrCanvas.style.display = "block";
       drawInstructions();
       instructionsRemoved = false;
