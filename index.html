@@ -60,14 +60,15 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     .games-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      display: flex;
+      flex-direction: column;
       gap: 20px;
       padding: 20px;
       max-width: 500px;
-      margin: 80px auto 20px; /* top margin leaves room for header */
+      margin: 80px auto 20px;
     }
     .game-card {
+      width: 100%;
       display: block;
       background: #fff;
       border-radius: 10px;
