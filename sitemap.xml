@@ -16,6 +16,22 @@
         <priority>0.9</priority>
     </url>
 
+    <!-- Picasso Paint Play Game -->
+    <url>
+        <loc>https://paintplay.in/picasso-paint-play.html</loc>
+        <lastmod>2024-03-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- Van Gogh Paint Play Game -->
+    <url>
+        <loc>https://paintplay.in/van-gogh-paint-play.html</loc>
+        <lastmod>2024-03-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
     <!-- Add more URLs as you add more pages/games -->
     <!-- Example for future pages:
     <url>
