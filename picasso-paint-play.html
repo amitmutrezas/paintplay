@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Picasso Paint Play - Interactive Picasso Style Digital Painting Experience | Paint PlayIN</title>
+  
+  <!-- Responsive viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=0.5">
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="Picasso Paint Play - Interactive Picasso Style Digital Painting Experience | Paint PlayIN">
+  <meta name="description" content="Unleash your inner Picasso! Draw abstract, cubist-inspired art with our interactive digital painting tool designed for kids.">
+  <meta name="keywords" content="picasso paint play, digital painting, abstract art, cubist style, interactive art for kids, creative games">
+  <meta name="author" content="Paint PlayIN">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://paintplay.in/picasso-paint-play.html">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://paintplay.in/picasso-paint-play.html">
+  <meta property="og:title" content="Picasso Paint Play - Interactive Picasso Style Digital Painting Experience">
+  <meta property="og:description" content="Unleash your inner Picasso! Draw abstract, cubist-inspired art with our interactive digital painting tool designed for kids.">
+  <meta property="og:image" content="thumbnail-picasso-paint.png">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://paintplay.in/picasso-paint-play.html">
+  <meta name="twitter:title" content="Picasso Paint Play - Interactive Picasso Style Digital Painting Experience">
+  <meta name="twitter:description" content="Unleash your inner Picasso! Draw abstract, cubist-inspired art with our interactive digital painting tool designed for kids.">
+  <meta name="twitter:image" content="thumbnail-picasso-paint.png">
+  
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  
+  <!-- Preload critical assets -->
+  <link rel="preload" href="PaintPlayIN Logo.png" as="image">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" as="style">
+  
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Picasso Paint Play",
+    "url": "https://paintplay.in/picasso-paint-play.html",
+    "description": "An interactive digital painting experience for kids to create abstract, cubist-inspired art in a Picasso style.",
+    "image": "thumbnail-picasso-paint.png",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.5",
+      "reviewCount": "20"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Paint PlayIN",
+      "url": "https://paintplay.in"
+    }
+  }
+  </script>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#ADD8E6">
+  
+  <!-- Import Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Global Styles */
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #fff;
+      font-family: 'Roboto', sans-serif;
+    }
+    /* Header */
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #ADD8E6;
+      color: #382929;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      font-size: 24px;
+      font-weight: bold;
+      padding: 0 20px;
+    }
+    #header img {
+      height: 50px;
+      width: 50px;
+      margin-right: 10px;
+    }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(59,116,215,0.2);
+      color: #382929;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      margin-right: 10px;
+    }
+    .back-btn:hover {
+      background: rgba(24,46,113,0.4);
+      transform: translateX(-2px);
+    }
+    .back-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+    .logo-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+      margin: 0 auto;
+      transition: opacity 0.2s ease;
+    }
+    .logo-link:hover {
+      opacity: 0.8;
+    }
+    .logo-link img {
+      height: 50px;
+      width: 50px;
+      margin-right: 10px;
+    }
+    /* Mobile Div */
+    #mobileDiv {
+      display: none;
+      width: 100%;
+      background: #92b8d1;
+    }
+    /* Painting Canvas */
+    #paintCanvas {
+      position: absolute;
+      left: 0;
+      z-index: 1;
+      background-color: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      border: 2px solid #ccc;
+    }
+    /* Instruction Canvas */
+    #instructionCanvas {
+      position: absolute;
+      left: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+    /* Color Palette */
+    #colorPalette {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      padding: 15px 20px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      width: auto;
+      min-width: 320px;
+      justify-content: center;
+    }
+    .color-swatch {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border 0.2s;
+    }
+    .color-swatch.selected {
+      border: 2px solid #000;
+    }
+    .custom-swatch {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(45deg, #ccc, #eee);
+      font-size: 12px;
+      color: #444;
+    }
+    #customColorPicker {
+      position: fixed;
+      left: 50%;
+      bottom: 106px;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: none;
+    }
+    /* Toolbar */
+    #toolbar {
+      position: fixed;
+      right: 10px;
+      top: 60%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 10;
+    }
+    .toolbar-btn {
+      width: 80px;
+      height: 80px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toolbar-btn:hover {
+      background: rgba(255,255,255,1);
+    }
+    .toolbar-btn svg {
+      width: 45px;
+      height: 45px;
+    }
+    .save-btn {
+      background-color: #4CAF50;
+    }
+    .save-btn:hover {
+      background-color: #2f7b33;
+    }
+    .save-btn svg path {
+      fill: #ffffff;
+    }
+    .reset-btn {
+      background-color: #F44336;
+    }
+    .reset-btn:hover {
+      background-color: #8c2321;
+    }
+    .reset-btn svg path {
+      fill: #fff;
+    }
+    .undo-btn {
+      background-color: #d7c141;
+    }
+    .undo-btn:hover {
+      background-color: #61480b;
+    }
+    .undo-btn svg path {
+      fill: #fff;
+    }
+    /* Social Link */
+    #socialLink {
+      position: fixed;
+      bottom: 30px;
+      left: 20px;
+      z-index: 1000;
+    }
+    #socialLink a {
+      font-size: 16px;
+      color: #382929;
+      text-decoration: none;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    #socialLink a:hover {
+      background: rgba(255,255,255,1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    #socialLink img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      vertical-align: middle;
+    }
+    /* Instruction Message: Centered on Instruction Canvas */
+    /* (Drawn via JavaScript below) */
+    
+    /* Mobile Optimization */
+    @media (max-width: 600px) {
+      #header {
+        height: 100px;
+        font-size: 36px;
+        justify-content: flex-start;
+        padding-left: 10px;
+      }
+      #header img {
+        height: 60px;
+        width: 60px;
+        margin-right: 16px;
+      }
+      #mobileDiv {
+        display: block;
+      }
+      /* Let JS handle canvas resizing as in oil-paint-play.html */
+      /* Reposition color palette beside social link with horizontal scrolling */
+      #colorPalette {
+        position: fixed;
+        bottom: 20px;
+        left: 140px;
+        transform: none;
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 8px 16px;
+        gap: 12px;
+        height: 120px;
+      }
+      .color-swatch {
+        width: 60px;
+        height: 60px;
+      }
+      .custom-swatch {
+        font-size: 16px;
+      }
+      #customColorPicker {
+        position: fixed;
+        left: 50%;
+        bottom: 160px;
+        transform: translateX(-50%);
+        z-index: 100;
+        display: none;
+      }
+      #toolbar {
+        top: 25%;
+        gap: 20px;
+      }
+      .toolbar-btn {
+        width: 80px;
+        height: 80px;
+      }
+      .toolbar-btn svg {
+        width: 55px;
+        height: 55px;
+      }
+      #socialLink {
+        bottom: 100px;
+      }
+      #socialLink a {
+        padding: 10px 15px;
+      }
+      #socialLink img {
+        width: 24px;
+        height: 24px;
+      }
+    }
+    
+    /* Small phones */
+    @media (max-width: 360px) {
+      .color-swatch {
+        width: 50px;
+        height: 50px;
+      }
+      .toolbar-btn {
+        width: 70px;
+        height: 70px;
+      }
+      .toolbar-btn svg {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header with Back Button and Logo -->
+  <header id="header">
+    <a href="index.html" class="back-btn" aria-label="Back to home">
+      <svg viewBox="0 0 24 24">
+        <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+      </svg>
+    </a>
+    <a href="index.html" class="logo-link">
+      <img src="PaintPlayIN Logo.png" alt="Paint PlayIN Logo">
+      <span>Paint PlayIN</span>
+    </a>
+  </header>
+  
+  <!-- Mobile Div -->
+  <div id="mobileDiv"></div>
+  
+  <!-- Painting Canvas -->
+  <canvas id="paintCanvas"></canvas>
+  <!-- Instruction Canvas -->
+  <canvas id="instructionCanvas"></canvas>
+  
+  <!-- Color Palette -->
+  <div id="colorPalette">
+    <div class="color-swatch selected" data-color="rgba(244,67,54,0.8)" style="background-color: rgba(244,67,54,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(233,30,99,0.8)" style="background-color: rgba(233,30,99,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(156,39,176,0.8)" style="background-color: rgba(156,39,176,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(63,81,181,0.8)" style="background-color: rgba(63,81,181,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(33,150,243,0.8)" style="background-color: rgba(33,150,243,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(0,188,212,0.8)" style="background-color: rgba(0,188,212,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(76,175,80,0.8)" style="background-color: rgba(76,175,80,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(255,235,59,0.8)" style="background-color: rgba(255,235,59,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(255,152,0,0.8)" style="background-color: rgba(255,152,0,0.8);"></div>
+    <!-- Custom Color Swatch -->
+    <div class="color-swatch custom-swatch" id="customSwatch" title="Choose Custom Color">C</div>
+  </div>
+  <!-- Hidden Color Input -->
+  <input type="color" id="customColorPicker">
+  
+  <!-- Social Link for X Profile -->
+  <div id="socialLink">
+    <a href="https://x.com/amitmutrezas" target="_blank">
+      <img src="x-social-media-black-icon.png" alt="X Logo">
+      Follow Me
+    </a>
+  </div>
+  
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <div id="saveBtn" class="toolbar-btn save-btn" title="Save">
+      <svg viewBox="0 0 24 24">
+        <path d="M17 3H5c-1.1 0-2 .9-2 2v14l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+      </svg>
+    </div>
+    <div id="undoBtn" class="toolbar-btn undo-btn" title="Undo">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 1.86-.73 3.55-1.91 4.87l1.43 1.43C20.02 18.03 21 15.64 21 13c0-4.97-4.03-9-9-9z"/>
+      </svg>
+    </div>
+    <div id="resetBtn" class="toolbar-btn reset-btn" title="Reset">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+      </svg>
+    </div>
+  </div>
+  
+  <script>
+    // Global undo stack.
+    let undoStack = [];
+    
+    // Get DOM elements.
+    const header = document.getElementById('header');
+    const mobileDiv = document.getElementById('mobileDiv');
+    const paintCanvas = document.getElementById('paintCanvas');
+    const ctx = paintCanvas.getContext('2d');
+    const instrCanvas = document.getElementById('instructionCanvas');
+    const ictx = instrCanvas.getContext('2d');
+    const customSwatch = document.getElementById('customSwatch');
+    const customColorPicker = document.getElementById('customColorPicker');
+    const undoBtn = document.getElementById('undoBtn');
+    
+    // Save canvas state.
+    function saveState() {
+      undoStack.push(ctx.getImageData(0, 0, paintCanvas.width, paintCanvas.height));
+    }
+    
+    // Initialize canvas.
+    function initCanvas() {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      saveState();
+    }
+    
+    // Draw instructions on instruction canvas
+    function drawInstructions() {
+      ictx.clearRect(0, 0, instrCanvas.width, instrCanvas.height);
+      
+      // Set text properties
+      ictx.font = "bold 36px 'Roboto', sans-serif";
+      ictx.textAlign = "center";
+      ictx.textBaseline = "middle";
+      
+      const text1 = "Click and Drag";
+      const text2 = "to Create Picasso Art";
+      const text3 = "Unleash your creativity!";
+      
+      const centerX = instrCanvas.width / 2;
+      const centerY = instrCanvas.height / 2;
+      
+      // Add shadow for better visibility
+      ictx.shadowColor = "rgba(0,0,0,0.2)";
+      ictx.shadowBlur = 2;
+      ictx.shadowOffsetX = 1;
+      ictx.shadowOffsetY = 1;
+      
+      // Draw first and third lines in original color
+      ictx.fillStyle = "rgba(0,0,0,0.7)";
+      ictx.fillText(text1, centerX, centerY - 50);
+      ictx.fillText(text3, centerX, centerY + 50);
+      
+      // Draw middle line in dark blue
+      ictx.fillStyle = "#1a237e";  // Dark blue color
+      ictx.fillText(text2, centerX, centerY);
+      
+      // Reset shadow
+      ictx.shadowColor = "transparent";
+    }
+    
+    // Resize canvases.
+    function resizeCanvases() {
+      const headerHeight = header.offsetHeight;
+      const availableHeight = window.innerHeight - headerHeight;
+      
+      if (window.innerWidth <= 600) {
+        const mobileDivHeight = availableHeight * 0.1;
+        mobileDiv.style.display = "block";
+        mobileDiv.style.height = mobileDivHeight + "px";
+        paintCanvas.style.top = (headerHeight + mobileDivHeight) + "px";
+        instrCanvas.style.top = (headerHeight + mobileDivHeight) + "px";
+        // Use fixed palette height for mobile (120px)
+        paintCanvas.height = availableHeight - mobileDivHeight - 120;
+        instrCanvas.height = availableHeight - mobileDivHeight - 120;
+        document.documentElement.style.setProperty('--mobileDivHeight', mobileDivHeight + "px");
+      } else {
+        mobileDiv.style.display = "none";
+        paintCanvas.style.top = headerHeight + "px";
+        instrCanvas.style.top = headerHeight + "px";
+        const paletteEl = document.getElementById('colorPalette');
+        const paletteHeight = paletteEl.offsetHeight;
+        paintCanvas.height = availableHeight - paletteHeight - 20;
+        instrCanvas.height = availableHeight - paletteHeight - 20;
+      }
+      paintCanvas.width = window.innerWidth;
+      instrCanvas.width = window.innerWidth;
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      initCanvas();
+      drawInstructions();
+    }
+    window.addEventListener('resize', resizeCanvases);
+    window.addEventListener('load', resizeCanvases);
+    resizeCanvases();
+    
+    // Picasso style drawing functions.
+    function drawPicassoShape(x, y, thickness) {
+      const numVertices = 3 + Math.floor(Math.random() * 3); // 3 to 5 vertices
+      const angleStep = (2 * Math.PI) / numVertices;
+      let vertices = [];
+      for (let i = 0; i < numVertices; i++) {
+        // For a more fragmented look, add randomness to angle and radius.
+        const angle = i * angleStep + (Math.random() - 0.5) * angleStep;
+        const radius = thickness * (0.7 + Math.random() * 0.6);
+        const vx = x + Math.cos(angle) * radius;
+        const vy = y + Math.sin(angle) * radius;
+        vertices.push({ x: vx, y: vy });
+      }
+      // Use quadratic curves between vertices for a more fluid, abstract edge.
+      ctx.fillStyle = currentColor;
+      ctx.globalAlpha = 0.8 * (0.9 + Math.random() * 0.2);
+      ctx.beginPath();
+      ctx.moveTo(vertices[0].x, vertices[0].y);
+      for (let i = 0; i < vertices.length; i++) {
+        let current = vertices[i];
+        let next = vertices[(i + 1) % vertices.length];
+        // Control point: midpoint plus random offset.
+        let cpX = (current.x + next.x) / 2 + (Math.random() - 0.5) * thickness;
+        let cpY = (current.y + next.y) / 2 + (Math.random() - 0.5) * thickness;
+        ctx.quadraticCurveTo(cpX, cpY, next.x, next.y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    
+    function drawPicassoStroke(x, y, thickness) {
+      // Draw 3 to 4 shapes along the stroke
+      const count = 3 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < count; i++) {
+        const offsetX = (Math.random() - 0.5) * thickness;
+        const offsetY = (Math.random() - 0.5) * thickness;
+        drawPicassoShape(x + offsetX, y + offsetY, thickness);
+      }
+    }
+    
+    // Mouse and touch move handler.
+    function handleMouseMove(e) {
+      if (!isDrawing) return;
+      if (!instructionsRemoved) {
+        instrCanvas.style.display = "none";
+        instructionsRemoved = true;
+      }
+      const x = e.clientX;
+      const y = e.clientY;
+      const now = Date.now();
+      const timeDelta = now - lastTime;
+      const dx = x - lastX;
+      const dy = y - lastY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const speed = timeDelta ? (distance * 1000) / timeDelta : 0;
+      const thickness = Math.max(minThickness, maxThickness - speed / 50);
+      const steps = Math.ceil(distance / 5);
+      for (let i = 0; i < steps; i++) {
+        const t = i / steps;
+        const xPos = lastX + dx * t;
+        const yPos = lastY + dy * t;
+        drawPicassoStroke(xPos, yPos, thickness);
+      }
+      lastX = x;
+      lastY = y;
+      lastTime = now;
+    }
+    
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let lastTime = 0;
+    let currentColor = document.querySelector('.color-swatch.selected').getAttribute('data-color');
+    const minThickness = 5;
+    const maxThickness = 30;
+    let instructionsRemoved = false;
+    
+    paintCanvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      lastTime = Date.now();
+      if (!instructionsRemoved) {
+        instrCanvas.style.display = "none";
+        instructionsRemoved = true;
+      }
+    });
+    paintCanvas.addEventListener('mousemove', handleMouseMove);
+    paintCanvas.addEventListener('mouseup', () => {
+      isDrawing = false;
+      saveState();
+    });
+    paintCanvas.addEventListener('mouseout', () => isDrawing = false);
+    
+    paintCanvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      isDrawing = true;
+      const touch = e.touches[0];
+      lastX = touch.clientX;
+      lastY = touch.clientY;
+      lastTime = Date.now();
+      if (!instructionsRemoved) {
+        instrCanvas.style.display = "none";
+        instructionsRemoved = true;
+      }
+    }, { passive: false });
+    paintCanvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDrawing) return;
+      const touch = e.touches[0];
+      const x = touch.clientX;
+      const y = touch.clientY;
+      const now = Date.now();
+      const timeDelta = now - lastTime;
+      const dx = x - lastX;
+      const dy = y - lastY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const speed = timeDelta ? (distance * 1000) / timeDelta : 0;
+      const thickness = Math.max(minThickness, maxThickness - speed / 50);
+      const steps = Math.ceil(distance / 5);
+      for (let i = 0; i < steps; i++) {
+        const t = i / steps;
+        const xPos = lastX + dx * t;
+        const yPos = lastY + dy * t;
+        drawPicassoStroke(xPos, yPos, thickness);
+      }
+      lastX = x;
+      lastY = y;
+      lastTime = now;
+    }, { passive: false });
+    paintCanvas.addEventListener('touchend', () => {
+      isDrawing = false;
+      saveState();
+    }, { passive: false });
+    paintCanvas.addEventListener('touchcancel', () => isDrawing = false, { passive: false });
+    
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        if (swatch.classList.contains('custom-swatch')) return;
+        currentColor = swatch.getAttribute('data-color');
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        swatch.classList.add('selected');
+      });
+    });
+    
+    customSwatch.addEventListener('click', () => {
+      customColorPicker.style.display = "block";
+      customColorPicker.click();
+    });
+    customColorPicker.addEventListener('input', () => {
+      currentColor = customColorPicker.value;
+      customSwatch.style.backgroundColor = currentColor;
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      customSwatch.classList.add('selected');
+      customColorPicker.style.display = "none";
+    });
+    customColorPicker.addEventListener('blur', () => {
+      customColorPicker.style.display = "none";
+    });
+    
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const dataURL = paintCanvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'myPicassoPainting.png';
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      ctx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      instrCanvas.style.display = "block";
+      drawInstructions();
+      instructionsRemoved = false;
+      // Reset undo stack.
+      undoStack = [];
+      saveState();
+    });
+    
+    function undoStroke() {
+      if (undoStack.length > 1) {
+        undoStack.pop();
+        const previousState = undoStack[undoStack.length - 1];
+        ctx.putImageData(previousState, 0, 0);
+      } else {
+        ctx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      }
+    }
+    
+    document.getElementById('undoBtn').addEventListener('click', undoStroke);
+  </script>
+</body>
+</html>
