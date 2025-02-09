@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Paint PlayIN - Oil Paint Canvas | Fun Play With Paints</title>
+  <!-- Import Roboto from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #fff;
+      font-family: 'Roboto', sans-serif;
+    }
+    /* Header styling with light blue background and logo */
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #ADD8E6;  /* light blue */
+      color: #382929;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      font-size: 24px;
+      font-weight: bold;
+      padding: 0 20px;
+    }
+    /* Logo styling */
+    #header img {
+      height: 40px;
+      width: 40px;
+      margin-right: 10px;
+    }
+    /* Mobile div above canvas (only visible on mobile) */
+    #mobileDiv {
+      display: none;
+      width: 100%;
+      background: #92b8d1;  /* light blue-gray */
+    }
+    /* The painting canvas with elevation and border */
+    #paintCanvas {
+      position: absolute;
+      left: 0;
+      z-index: 1;
+      background-color: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border: 2px solid #ccc;
+    }
+    /* The instruction canvas overlay */
+    #instructionCanvas {
+      position: absolute;
+      left: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+    /* Color Palette Container at Bottom */
+    #colorPalette {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px 20px 0 0;  /* Rounded top corners */
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      width: auto;
+      min-width: 320px;
+      justify-content: center;
+    }
+    .color-swatch {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border 0.2s;
+    }
+    .color-swatch.selected {
+      border: 2px solid #000;
+    }
+    /* Custom swatch styling */
+    .custom-swatch {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(45deg, #ccc, #eee);
+      font-size: 12px;
+      color: #444;
+    }
+    /* Custom Color Picker positioned above the palette */
+    #customColorPicker {
+      position: fixed;
+      left: 50%;
+      bottom: 106px; /* fixed value: 20px (palette bottom) + ~76px (palette height) + 10px gap */
+      transform: translateX(-50%);
+      z-index: 100;
+      display: none;
+    }
+    /* Toolbar on the right side */
+    #toolbar {
+      position: fixed;
+      right: 10px;
+      top: 60%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 10;
+    }
+    .toolbar-btn {
+      width: 80px;
+      height: 80px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toolbar-btn:hover {
+      background: rgba(255,255,255,1);
+    }
+    .toolbar-btn svg {
+      width: 45px;
+      height: 45px;
+    }
+    /* Universal styles for Save and Reset buttons */
+    .save-btn {
+      background-color: #4CAF50; /* Green */
+    }
+    .save-btn:hover {
+      background-color: #2f7b33;
+    }
+    .save-btn svg path {
+      fill: #ffffff;
+    }
+    .reset-btn {
+      background-color: #F44336; /* Red */
+    }
+    .reset-btn:hover {
+      background-color: #8c2321;
+    }
+    .reset-btn svg path {
+      fill: #fff;
+    }
+    /* Undo button styles */
+    .undo-btn {
+      background-color: #d7c141; /* Gold as placeholder */
+    }
+    .undo-btn:hover {
+      background-color: #61480b;
+    }
+    .undo-btn svg path {
+      fill: #fff;
+    }
+    /* Social link styling */
+    #socialLink {
+      position: fixed;
+      bottom: 30px;
+      left: 20px;
+      z-index: 1000;
+    }
+    #socialLink a {
+      font-size: 16px;
+      color: #382929;
+      text-decoration: none;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    #socialLink a:hover {
+      background: rgba(255,255,255,1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    #socialLink img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      vertical-align: middle;
+    }
+    /* Mobile Optimization */
+    @media (max-width: 600px) {
+      /* Left align header content on mobile */
+      #header {
+        justify-content: flex-start;
+        padding-left: 10px;
+      }
+      /* Display mobile div and set its height to 10% of available area */
+      #mobileDiv {
+        display: block;
+      }
+      /* Adjust canvas and instruction canvas positions based on header + mobileDiv */
+      #paintCanvas, #instructionCanvas {
+        top: calc(60px + var(--mobileDivHeight));
+      }
+      /* Increase color palette bottom margin and enlarge swatch sizes to 60x60px */
+      #colorPalette {
+        padding: 8px 16px;
+        gap: 12px;
+        margin-bottom: 120px;
+      }
+      .color-swatch {
+        width: 60px;
+        height: 60px;
+      }
+      .custom-swatch {
+        font-size: 16px;
+      }
+      /* Custom color picker remains fixed above the palette */
+      #customColorPicker {
+        position: fixed;
+        left: 50%;
+        bottom: 106px;
+        transform: translateX(-50%);
+        z-index: 100;
+        display: none;
+      }
+      /* Adjust toolbar: move up to 25% from the top and increase size */
+      #toolbar {
+        top: 25%;
+        gap: 20px;
+      }
+      .toolbar-btn {
+        width: 80px;
+        height: 80px;
+      }
+      .toolbar-btn svg {
+        width: 55px;
+        height: 55px;
+      }
+      #socialLink {
+        bottom: 100px; /* Adjust to be above the color palette */
+      }
+      
+      #socialLink a {
+        padding: 10px 15px;
+      }
+
+      #socialLink img {
+        width: 24px;
+        height: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header with logo and text "Paint PlayIN" -->
+  <header id="header">
+    <img src="PaintPlayIN Logo.png" alt="Logo">
+    <span>Paint PlayIN</span>
+  </header>
+
+  <!-- Mobile-only div covering 10% of the available canvas area -->
+  <div id="mobileDiv"></div>
+  
+  <!-- Painting Canvas -->
+  <canvas id="paintCanvas"></canvas>
+  <!-- Instruction Canvas (overlay) -->
+  <canvas id="instructionCanvas"></canvas>
+
+  <!-- Color Palette -->
+  <div id="colorPalette">
+    <div class="color-swatch selected" data-color="rgba(244,67,54,0.8)" style="background-color: rgba(244,67,54,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(233,30,99,0.8)" style="background-color: rgba(233,30,99,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(156,39,176,0.8)" style="background-color: rgba(156,39,176,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(63,81,181,0.8)" style="background-color: rgba(63,81,181,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(33,150,243,0.8)" style="background-color: rgba(33,150,243,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(0,188,212,0.8)" style="background-color: rgba(0,188,212,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(76,175,80,0.8)" style="background-color: rgba(76,175,80,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(255,235,59,0.8)" style="background-color: rgba(255,235,59,0.8);"></div>
+    <div class="color-swatch" data-color="rgba(255,152,0,0.8)" style="background-color: rgba(255,152,0,0.8);"></div>
+    <!-- Custom Color Swatch -->
+    <div class="color-swatch custom-swatch" id="customSwatch" title="Choose Custom Color">C</div>
+  </div>
+  <!-- Hidden Color Input for Custom Color -->
+  <input type="color" id="customColorPicker">
+  
+  <!-- Social Link for X Profile (fixed at bottom left) -->
+  <div id="socialLink">
+    <a href="https://x.com/amitmutrezas" target="_blank">
+        <img src="x-social-media-black-icon.png" alt="X Logo">
+        Follow Me
+    </a>
+  </div>
+  
+  <!-- Toolbar with Save, Undo, and Reset Buttons -->
+  <div id="toolbar">
+    <!-- Save Button -->
+    <div id="saveBtn" class="toolbar-btn save-btn" title="Save">
+      <svg viewBox="0 0 24 24">
+        <path d="M17 3H5c-1.1 0-2 .9-2 2v14l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+      </svg>
+    </div>
+    <!-- Undo Button -->
+    <div id="undoBtn" class="toolbar-btn undo-btn" title="Undo">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 1.86-.73 3.55-1.91 4.87l1.43 1.43C20.02 18.03 21 15.64 21 13c0-4.97-4.03-9-9-9z"/>
+      </svg>
+    </div>
+    <!-- Reset Button -->
+    <div id="resetBtn" class="toolbar-btn reset-btn" title="Reset">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+      </svg>
+    </div>
+  </div>
+
+  <script>
+    // Global undo stack to store canvas states.
+    let undoStack = [];
+    
+    // Get DOM elements.
+    const header = document.getElementById('header');
+    const mobileDiv = document.getElementById('mobileDiv');
+    const paintCanvas = document.getElementById('paintCanvas');
+    const ctx = paintCanvas.getContext('2d');
+    const instrCanvas = document.getElementById('instructionCanvas');
+    const ictx = instrCanvas.getContext('2d');
+    const customSwatch = document.getElementById('customSwatch');
+    const customColorPicker = document.getElementById('customColorPicker');
+    const undoBtn = document.getElementById('undoBtn');
+    
+    // Function to save the current state of the canvas.
+    function saveState() {
+      // Limit the undo stack size if necessary.
+      undoStack.push(ctx.getImageData(0, 0, paintCanvas.width, paintCanvas.height));
+    }
+    
+    // Initialize the canvas state.
+    function initCanvas() {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      saveState(); // Save the initial white state.
+    }
+    
+    // Resize canvases and mobile div based on window size.
+    function resizeCanvases() {
+      const headerHeight = header.offsetHeight;
+      const availableHeight = window.innerHeight - headerHeight;
+      
+      if (window.innerWidth <= 600) {
+        const mobileDivHeight = availableHeight * 0.1; // 10% of available area
+        mobileDiv.style.display = "block";
+        mobileDiv.style.height = mobileDivHeight + "px";
+        paintCanvas.style.top = (headerHeight + mobileDivHeight) + "px";
+        instrCanvas.style.top = (headerHeight + mobileDivHeight) + "px";
+        // Subtract the height of the color palette plus an extra margin of 20px.
+        const paletteEl = document.getElementById('colorPalette');
+        const paletteHeight = paletteEl.offsetHeight;
+        paintCanvas.height = availableHeight - mobileDivHeight - paletteHeight - 20;
+        instrCanvas.height = availableHeight - mobileDivHeight - paletteHeight - 20;
+        document.documentElement.style.setProperty('--mobileDivHeight', mobileDivHeight + "px");
+      } else {
+        mobileDiv.style.display = "none";
+        paintCanvas.style.top = headerHeight + "px";
+        instrCanvas.style.top = headerHeight + "px";
+        const paletteEl = document.getElementById('colorPalette');
+        const paletteHeight = paletteEl.offsetHeight;
+        paintCanvas.height = availableHeight - paletteHeight - 20;
+        instrCanvas.height = availableHeight - paletteHeight - 20;
+      }
+      paintCanvas.width = window.innerWidth;
+      instrCanvas.width = window.innerWidth;
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      initCanvas();
+      drawInstructions();
+    }
+    window.addEventListener('resize', resizeCanvases);
+    resizeCanvases();
+
+    // Draw the instruction message with an oil-painted effect.
+    function drawInstructions() {
+      ictx.clearRect(0, 0, instrCanvas.width, instrCanvas.height);
+      ictx.font = "36px 'Roboto', sans-serif";
+      ictx.textAlign = "left";
+      ictx.textBaseline = "top";
+      
+      const instructions = [
+        { parts: [ { text: "Click and Drag", color: "#00008B" }, { text: " to", color: "#222" } ] },
+        { text: "Paint with Oils", color: "#222" },
+        { text: "", color: "#222" },
+        { text: "Embrace your inner", color: "#222" },
+        { text: "Jackson Pollock,", color: "#222" },
+        { text: "don't think, just", color: "#222" },
+        { text: "paint!", color: "#222" }
+      ];
+      
+      const lineHeight = 42;
+      const totalHeight = lineHeight * instructions.length;
+      let currentY = (instrCanvas.height - totalHeight) / 2;
+      
+      ictx.shadowColor = "rgba(0, 0, 0, 0.2)";
+      ictx.shadowBlur = 2;
+      ictx.shadowOffsetX = 1;
+      ictx.shadowOffsetY = 1;
+      instructions.forEach(line => {
+        let lineWidth = 0;
+        if (line.parts) {
+          line.parts.forEach(part => {
+            lineWidth += ictx.measureText(part.text).width;
+          });
+        } else {
+          lineWidth = ictx.measureText(line.text).width;
+        }
+        const startX = (instrCanvas.width - lineWidth) / 2;
+        for (let i = 0; i < 3; i++) {
+          let currentX = startX;
+          if (line.parts) {
+            line.parts.forEach(part => {
+              const jitterX = (Math.random() - 0.5) * 2;
+              const jitterY = (Math.random() - 0.5) * 2;
+              ictx.fillStyle = part.color;
+              ictx.fillText(part.text, currentX + jitterX, currentY + jitterY);
+              currentX += ictx.measureText(part.text).width;
+            });
+          } else {
+            const jitterX = (Math.random() - 0.5) * 2;
+            const jitterY = (Math.random() - 0.5) * 2;
+            ictx.fillStyle = line.color;
+            ictx.fillText(line.text, startX + jitterX, currentY + jitterY);
+          }
+        }
+        currentY += lineHeight;
+      });
+      
+      ictx.shadowColor = "transparent";
+      currentY = (instrCanvas.height - totalHeight) / 2;
+      instructions.forEach(line => {
+        let lineWidth = 0;
+        if (line.parts) {
+          line.parts.forEach(part => {
+            lineWidth += ictx.measureText(part.text).width;
+          });
+        } else {
+          lineWidth = ictx.measureText(line.text).width;
+        }
+        const startX = (instrCanvas.width - lineWidth) / 2;
+        let currentX = startX;
+        if (line.parts) {
+          line.parts.forEach(part => {
+            ictx.fillStyle = part.color;
+            ictx.fillText(part.text, currentX, currentY);
+            currentX += ictx.measureText(part.text).width;
+          });
+        } else {
+          ictx.fillStyle = line.color;
+          ictx.fillText(line.text, startX, currentY);
+        }
+        currentY += lineHeight;
+      });
+    }
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let lastTime = 0;
+    let currentColor = document.querySelector('.color-swatch.selected').getAttribute('data-color');
+    const minThickness = 5;
+    const maxThickness = 30;
+    let instructionsRemoved = false;
+
+    function drawMainStroke(x, y, thickness) {
+      const count = 4 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < count; i++) {
+        const offsetX = (Math.random() - 0.5) * thickness * 0.4;
+        const offsetY = (Math.random() - 0.5) * thickness * 0.4;
+        const radius = thickness * (0.8 + Math.random() * 0.2);
+        ctx.fillStyle = currentColor;
+        ctx.globalAlpha = 0.8 * (0.9 + Math.random() * 0.2);
+        ctx.beginPath();
+        ctx.arc(x + offsetX, y + offsetY, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawDroplet(x, y, thickness) {
+      const radius = thickness * (0.15 + Math.random() * 0.2);
+      ctx.fillStyle = currentColor;
+      ctx.globalAlpha = 0.8 * (0.9 + Math.random() * 0.2);
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    function sprayPaint(x, y, thickness) {
+      const dropletCount = Math.floor(10 + ((thickness - minThickness) / (maxThickness - minThickness)) * 10);
+      for (let i = 0; i < dropletCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 30;
+        const dropletX = x + Math.cos(angle) * distance;
+        const dropletY = y + Math.sin(angle) * distance;
+        drawDroplet(dropletX, dropletY, thickness);
+      }
+    }
+
+    function handleMouseMove(e) {
+      if (!isDrawing) return;
+      if (!instructionsRemoved) {
+        instrCanvas.style.display = "none";
+        instructionsRemoved = true;
+      }
+      const x = e.clientX;
+      const y = e.clientY;
+      const now = Date.now();
+      const timeDelta = now - lastTime;
+      const dx = x - lastX;
+      const dy = y - lastY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const speed = timeDelta ? (distance * 1000) / timeDelta : 0;
+      let thickness = Math.max(minThickness, maxThickness - speed / 50);
+      const steps = Math.ceil(distance / 5);
+      for (let i = 0; i < steps; i++) {
+        const t = i / steps;
+        const xPos = lastX + dx * t;
+        const yPos = lastY + dy * t;
+        drawMainStroke(xPos, yPos, thickness);
+        sprayPaint(xPos, yPos, thickness);
+      }
+      lastX = x;
+      lastY = y;
+      lastTime = now;
+    }
+
+    paintCanvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      lastTime = Date.now();
+      if (!instructionsRemoved) {
+        instrCanvas.style.display = "none";
+        instructionsRemoved = true;
+      }
+    });
+    paintCanvas.addEventListener('mousemove', handleMouseMove);
+    paintCanvas.addEventListener('mouseup', () => {
+      isDrawing = false;
+      saveState();
+    });
+    paintCanvas.addEventListener('mouseout', () => isDrawing = false);
+
+    paintCanvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      isDrawing = true;
+      const touch = e.touches[0];
+      lastX = touch.clientX;
+      lastY = touch.clientY;
+      lastTime = Date.now();
+      if (!instructionsRemoved) {
+        instrCanvas.style.display = "none";
+        instructionsRemoved = true;
+      }
+    }, { passive: false });
+    paintCanvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDrawing) return;
+      const touch = e.touches[0];
+      const x = touch.clientX;
+      const y = touch.clientY;
+      const now = Date.now();
+      const timeDelta = now - lastTime;
+      const dx = x - lastX;
+      const dy = y - lastY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const speed = timeDelta ? (distance * 1000) / timeDelta : 0;
+      let thickness = Math.max(minThickness, maxThickness - speed / 50);
+      const steps = Math.ceil(distance / 5);
+      for (let i = 0; i < steps; i++) {
+        const t = i / steps;
+        const xPos = lastX + dx * t;
+        const yPos = lastY + dy * t;
+        drawMainStroke(xPos, yPos, thickness);
+        sprayPaint(xPos, yPos, thickness);
+      }
+      lastX = x;
+      lastY = y;
+      lastTime = now;
+    }, { passive: false });
+    paintCanvas.addEventListener('touchend', () => {
+      isDrawing = false;
+      saveState();
+    }, { passive: false });
+    paintCanvas.addEventListener('touchcancel', () => isDrawing = false, { passive: false });
+    
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        if (swatch.classList.contains('custom-swatch')) return;
+        currentColor = swatch.getAttribute('data-color');
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        swatch.classList.add('selected');
+      });
+    });
+    
+    customSwatch.addEventListener('click', () => {
+      customColorPicker.style.display = "block";
+      customColorPicker.click();
+    });
+    customColorPicker.addEventListener('input', () => {
+      currentColor = customColorPicker.value;
+      customSwatch.style.backgroundColor = currentColor;
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      customSwatch.classList.add('selected');
+      customColorPicker.style.display = "none";
+    });
+    customColorPicker.addEventListener('blur', () => {
+      customColorPicker.style.display = "none";
+    });
+    
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const dataURL = paintCanvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'myOilPainting.png';
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      ctx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      instrCanvas.style.display = "block";
+      drawInstructions();
+      instructionsRemoved = false;
+      // Reset undo stack to the cleared state.
+      undoStack = [];
+      saveState();
+    });
+    
+    // Undo functionality: remove the last stroke.
+    function undoStroke() {
+      if (undoStack.length > 1) {
+        // Remove current state.
+        undoStack.pop();
+        // Restore previous state.
+        const previousState = undoStack[undoStack.length - 1];
+        ctx.putImageData(previousState, 0, 0);
+      } else {
+        // If no previous state, clear canvas.
+        ctx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      }
+    }
+    
+    document.getElementById('undoBtn').addEventListener('click', undoStroke);
+  </script>
+</body>
+</html>
