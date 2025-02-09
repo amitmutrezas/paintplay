@@ -2,9 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Paint PlayIN - Oil Paint Canvas | Fun Play With Paints</title>
+  <title>Oil Paint Play - Oil Paint Canvas | Paint Play Games</title>
+  
+  <!-- Responsive viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Experience the fun of oil painting virtually with Oil Paint Play. Throw oil paint on a digital canvas and unleash your creativity.">
+  <meta name="keywords" content="oil paint play, digital painting, oil painting game, paint play games, creative games for kids">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://paintplay.in/oil-paint-play.html">
+  
+  <!-- Open Graph Tags -->
+  <meta property="og:title" content="Oil Paint Play - Oil Paint Canvas | Paint Play Games">
+  <meta property="og:description" content="Experience the fun of oil painting virtually with Oil Paint Play. Throw oil paint on a digital canvas and unleash your creativity.">
+  <meta property="og:image" content="thumbnail-oil-paint.png">
+  <meta property="og:url" content="https://paintplay.in/oil-paint-play.html">
+  <meta property="og:type" content="website">
+  
+  <!-- Twitter Card Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Oil Paint Play - Oil Paint Canvas | Paint Play Games">
+  <meta name="twitter:description" content="Experience the fun of oil painting virtually with Oil Paint Play. Throw oil paint on a digital canvas and unleash your creativity.">
+  <meta name="twitter:image" content="thumbnail-oil-paint.png">
+  
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Game",
+    "name": "Oil Paint Play",
+    "url": "https://paintplay.in/oil-paint-play.html",
+    "description": "Experience the fun of oil painting virtually with Oil Paint Play. Throw oil paint on a digital canvas and unleash your creativity.",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.5",
+      "reviewCount": "20"
+    }
+  }
+  </script>
+  
   <!-- Import Roboto from Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  
   <style>
     html, body {
       margin: 0;
@@ -196,20 +236,16 @@
     }
     /* Mobile Optimization */
     @media (max-width: 600px) {
-      /* Left align header content on mobile */
       #header {
         justify-content: flex-start;
         padding-left: 10px;
       }
-      /* Display mobile div and set its height to 10% of available area */
       #mobileDiv {
         display: block;
       }
-      /* Adjust canvas and instruction canvas positions based on header + mobileDiv */
       #paintCanvas, #instructionCanvas {
         top: calc(60px + var(--mobileDivHeight));
       }
-      /* Increase color palette bottom margin and enlarge swatch sizes to 60x60px */
       #colorPalette {
         padding: 8px 16px;
         gap: 12px;
@@ -222,7 +258,6 @@
       .custom-swatch {
         font-size: 16px;
       }
-      /* Custom color picker remains fixed above the palette */
       #customColorPicker {
         position: fixed;
         left: 50%;
@@ -231,7 +266,6 @@
         z-index: 100;
         display: none;
       }
-      /* Adjust toolbar: move up to 25% from the top and increase size */
       #toolbar {
         top: 25%;
         gap: 20px;
@@ -245,13 +279,11 @@
         height: 55px;
       }
       #socialLink {
-        bottom: 100px; /* Adjust to be above the color palette */
+        bottom: 100px;
       }
-      
       #socialLink a {
         padding: 10px 15px;
       }
-
       #socialLink img {
         width: 24px;
         height: 24px;
