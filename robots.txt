@@ -1,0 +1,16 @@
+# robots.txt for Paint PlayIN
+
+# Allow all robots full access
+User-agent: *
+Allow: /
+
+# Specify the location of your sitemap (if you have one)
+Sitemap: https://paintplay.in/sitemap.xml
+
+# Disallow access to specific files/directories (if needed)
+# Disallow: /private/
+# Disallow: /temp/
+# Disallow: /admin/
+
+# Crawl-delay for all bots (optional)
+# Crawl-delay: 10
