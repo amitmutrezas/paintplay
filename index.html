@@ -42,13 +42,14 @@
       width: 100%;
       background: #92b8d1;  /* light blue-gray */
     }
-    /* The painting canvas with elevation */
+    /* The painting canvas with elevation and border */
     #paintCanvas {
       position: absolute;
       left: 0;
       z-index: 1;
       background-color: white;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border: 2px solid #ccc;
     }
     /* The instruction canvas overlay */
     #instructionCanvas {
@@ -65,13 +66,14 @@
       transform: translateX(-50%);
       display: flex;
       gap: 10px;
-      padding: 5px 10px;
-      background: rgba(255, 255, 255, 0.8);
-      border-radius: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      z-index: 10;
-      margin-bottom: 20px;
-      
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px 20px 0 0;  /* Rounded top corners */
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      width: auto;
+      min-width: 320px;
+      justify-content: center;
     }
     .color-swatch {
       width: 50px;
@@ -97,7 +99,7 @@
     #customColorPicker {
       position: fixed;
       left: 50%;
-      bottom: 106px; /* fixed value: 20px (palette bottom) + 76px (approx. palette height) + 10px gap */
+      bottom: 106px; /* fixed value: 20px (palette bottom) + ~76px (palette height) + 10px gap */
       transform: translateX(-50%);
       z-index: 100;
       display: none;
@@ -151,7 +153,7 @@
     .reset-btn svg path {
       fill: #fff;
     }
-    /* Rename extra action to undo button */
+    /* Undo button styles */
     .undo-btn {
       background-color: #d7c141; /* Gold as placeholder */
     }
@@ -160,6 +162,37 @@
     }
     .undo-btn svg path {
       fill: #fff;
+    }
+    /* Social link styling */
+    #socialLink {
+      position: fixed;
+      bottom: 30px;
+      left: 20px;
+      z-index: 1000;
+    }
+    #socialLink a {
+      font-size: 16px;
+      color: #382929;
+      text-decoration: none;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    #socialLink a:hover {
+      background: rgba(255,255,255,1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    #socialLink img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      vertical-align: middle;
     }
     /* Mobile Optimization */
     @media (max-width: 600px) {
@@ -211,6 +244,18 @@
         width: 55px;
         height: 55px;
       }
+      #socialLink {
+        bottom: 100px; /* Adjust to be above the color palette */
+      }
+      
+      #socialLink a {
+        padding: 10px 15px;
+      }
+
+      #socialLink img {
+        width: 24px;
+        height: 24px;
+      }
     }
   </style>
 </head>
@@ -246,7 +291,15 @@
   <!-- Hidden Color Input for Custom Color -->
   <input type="color" id="customColorPicker">
   
-  <!-- Toolbar with Save, Reset, and Undo Buttons -->
+  <!-- Social Link for X Profile (fixed at bottom left) -->
+  <div id="socialLink">
+    <a href="https://x.com/amitmutrezas" target="_blank">
+        <img src="x-social-media-black-icon.png" alt="X Logo">
+        Follow Me
+    </a>
+  </div>
+  
+  <!-- Toolbar with Save, Undo, and Reset Buttons -->
   <div id="toolbar">
     <!-- Save Button -->
     <div id="saveBtn" class="toolbar-btn save-btn" title="Save">
@@ -256,9 +309,9 @@
     </div>
     <!-- Undo Button -->
     <div id="undoBtn" class="toolbar-btn undo-btn" title="Undo">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 1.86-.73 3.55-1.91 4.87l1.43 1.43C20.02 18.03 21 15.64 21 13c0-4.97-4.03-9-9-9z"/>
-        </svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M12 5V1L7 6l5 5V7c3.86 0 7 3.14 7 7 0 1.86-.73 3.55-1.91 4.87l1.43 1.43C20.02 18.03 21 15.64 21 13c0-4.97-4.03-9-9-9z"/>
+      </svg>
     </div>
     <!-- Reset Button -->
     <div id="resetBtn" class="toolbar-btn reset-btn" title="Reset">
@@ -307,15 +360,20 @@
         mobileDiv.style.height = mobileDivHeight + "px";
         paintCanvas.style.top = (headerHeight + mobileDivHeight) + "px";
         instrCanvas.style.top = (headerHeight + mobileDivHeight) + "px";
-        paintCanvas.height = availableHeight - mobileDivHeight;
-        instrCanvas.height = availableHeight - mobileDivHeight;
+        // Subtract the height of the color palette plus an extra margin of 20px.
+        const paletteEl = document.getElementById('colorPalette');
+        const paletteHeight = paletteEl.offsetHeight;
+        paintCanvas.height = availableHeight - mobileDivHeight - paletteHeight - 20;
+        instrCanvas.height = availableHeight - mobileDivHeight - paletteHeight - 20;
         document.documentElement.style.setProperty('--mobileDivHeight', mobileDivHeight + "px");
       } else {
         mobileDiv.style.display = "none";
         paintCanvas.style.top = headerHeight + "px";
         instrCanvas.style.top = headerHeight + "px";
-        paintCanvas.height = availableHeight;
-        instrCanvas.height = availableHeight;
+        const paletteEl = document.getElementById('colorPalette');
+        const paletteHeight = paletteEl.offsetHeight;
+        paintCanvas.height = availableHeight - paletteHeight - 20;
+        instrCanvas.height = availableHeight - paletteHeight - 20;
       }
       paintCanvas.width = window.innerWidth;
       instrCanvas.width = window.innerWidth;
