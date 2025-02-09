@@ -106,6 +106,51 @@
       width: 50px;
       margin-right: 10px;
     }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(59, 116, 215, 0.2);
+      color: #382929;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      margin-right: 10px;
+    }
+
+    .back-btn:hover {
+      background: rgba(24, 46, 113, 0.4);
+      transform: translateX(-2px);
+    }
+
+    .back-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .logo-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+      margin: 0 auto;
+      transition: opacity 0.2s ease;
+    }
+
+    .logo-link:hover {
+      opacity: 0.8;
+    }
+
+    /* Logo styling */
+    .logo-link img {
+      height: 50px;
+      width: 50px;
+      margin-right: 10px;
+    }
+
+
     /* Mobile div above canvas (only visible on mobile) */
     #mobileDiv {
       display: none;
@@ -359,8 +404,16 @@
 <body>
   <!-- Header with logo and text "Paint PlayIN" -->
   <header id="header">
-    <img src="PaintPlayIN Logo.png" alt="Logo">
-    <span>Paint PlayIN</span>
+     <!-- Back button -->
+     <a href="index.html" class="back-btn" aria-label="Back to home">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+      </svg>
+    </a>
+    <a href="index.html" class="logo-link">
+      <img src="PaintPlayIN Logo.png" alt="Logo">
+      <span>Paint PlayIN</span>
+    </a>
   </header>
 
   <!-- Mobile-only div covering 10% of the available canvas area -->
